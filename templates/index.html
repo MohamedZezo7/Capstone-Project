@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    {% block content %}
+
+    <div class="container">
+
+        <a href="/" class="logo">
+            <h1 itemprop="name">Shark Defense</h1>
+        </a>
+
+        <div class="short-note">
+            <p itemprop="description">Protect yourself from <strong>phishing attacks</strong> with the help of <strong>Shark Defense</strong>. </p>
+        </div>
+
+        <form action="/" method="post">
+            <input type="text" name="url" placeholder="URL" required="required" />
+            <button type="submit" class="btn" onclick="showLoadingSpinner()">Verify URL</button>
+        </form>
+
+        {% if output != "NA" %}
+        <div class="result">
+
+            {% if output.status == "SUCCESS" %}
+
+            
+            <!-- <strong>Trust Score : {{output.trust_score}} / 100 </strong> -->
+            <strong>
+
+                {% if output.trust_score >= 0 and output.trust_score < 60 %}
+                <span style="color: red; font-size: 1.25rem"> Malicious : {{output.trust_score}} / 100</span>
+                {% elif output.trust_score >= 60 and output.trust_score < 70 %}
+                <span style="color: orange; font-size: 1.25rem">Suspicious : {{output.trust_score}} / 100</span>
+                {% elif output.trust_score >= 70 and output.trust_score < 90 %}
+                <span style="color: yellowgreen; font-size: 1.25rem"> Clean : {{output.trust_score}} / 100</span>
+                {% else %}
+                <span style="color: green; font-size: 1.25rem"> Clean : {{output.trust_score}} / 100</span>
+                {% endif %} 
+
+            </strong>
+            
+            <br>
+            URL : {{output.url}}
+
+            {% if output.msg is defined %}
+                <br>
+              {{output.msg}}
+            {% endif %}
+
+            {% if output.response_status != False %}
+                
+                
+            <br><br>
+            
+            <form id="preview" class="preview-form" action="{{ url_for('preview')}}" method="POST" target="_blank">
+                <input type="hidden" name="url" value="{{output.url}}">
+            </form>
+
+            <button class = "preview-button" onclick="document.getElementById('preview').submit()">Preview URL within Shark Defense</button>
+
+            
+            
+            <form id="source-code" class="source-code-form" action="{{ url_for('view_source_code')}}" method="POST" target="_blank">
+                <input type="hidden" name="url" value="{{output.url}}">
+            </form>
+
+            <button class = "preview-button" onclick="document.getElementById('source-code').submit()">Show Source Code of URL</button>
+            
+            <br><br>(External scripts are disabled for your safety.)
+
+            {% else %}
+
+               <br><br>
+               Can not access this page at the moment. Page may be down or may have blocked viewing with scripts.
+
+            {% endif %}
+
+
+
+
+            <br><br><br>
+
+
+            <strong>Info for Nerds</strong>
+
+            <br><br>
+            <table class="table-view">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>Global Rank</td>
+                        <td>{{output.rank}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>HTTP Status Code</td>
+                        <td>{{output.response_status}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Domain Age</td>
+                        <td>{{output.age}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Use of URL Shortener</td>
+                        <td>{% if output.is_url_shortened == 1%} YES {% else %} NO {% endif %}</td>
+                    </tr>
+
+                    <tr>
+                        <td>HSTS Support</td>
+                        <td>{% if output.hsts_support == 1%} YES {% else %} NO {% endif %}</td>
+                    </tr>
+
+                    <tr>
+                        <td>IP instead of Domain</td>
+                        <td>{% if output.ip_present == 1%} YES {% else %} NO {% endif %}</td>
+                    </tr>
+
+                    <tr>
+                        <td>URL Redirects</td>
+                        <td>{% if output.url_redirects == 0%} NO {% else %}  {% for value in output.url_redirects %} {{ value }} &nbsp;{% endfor %} {% endif %}</td>
+                    </tr>
+
+                    <tr>
+                        <td>IP of Domain</td>
+                        <td>{{output.ip}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Too Long URL</td>
+                        <td>{% if output.too_long_url == 1%} YES {% else %} NO {% endif %}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Too Deep URL</td>
+                        <td>{% if output.too_deep_url == 1%} YES {% else %} NO {% endif %}</td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <br><br>
+
+
+
+            {% if output.ssl != 0 %}
+            
+            <strong> SSL Certificate Details </strong>
+            <br><br>
+
+            <table class="table-view">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in output.ssl.items() %}
+                    <tr>
+                        <td>{{ key }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+
+
+            <br><br>
+            <strong> WHOIS Data </strong>
+            <br><br>
+
+            <table class="table-view">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in output.whois.items() %}
+                    <tr>
+                        <td>{{ key }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+            
+
+
+            {% else %} URL : {{output.url}} <br> Message : {{output.msg}} <br> {% endif %}
+            <br><br>
+
+        </div>
+        {% endif %} {% endblock %}
+
+
+
+</body>
+
+</html>
+
+
+
+
